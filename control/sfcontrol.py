@@ -1,12 +1,14 @@
 
 from pathlib import Path
 import os,shutil
+from tkinter import NO
 import numpy as np
 import pandas as pd
 import tempfile
 
+
 class SFControl:
-    def __init__(self, sf_dir):
+    def __init__(self, sf_dir=r"C:\LANL"):
         self.superfish_dir = Path(sf_dir)
     def start_SF7(self,inputfile="",controlfile=""):
         app_name = "SF7.EXE"
@@ -29,9 +31,10 @@ class SFControl:
         except Exception as e:
             print(f"Error starting Superfish: {e}")
             return None
+sfc=SFControl()
 class SFDataProcessor:
-    def __init__(self, sf_dir):
-        self.superfish_dir = Path(sf_dir)
+    def __init__(self):
+        pass
     def create_sf7_input(self):
         pass
     def process_tbl_data(self, tbl_file):
@@ -54,24 +57,36 @@ class SFDataProcessor:
             df=pd.DataFrame(data_lines, columns=title)
         return df, title, unit
             
+            
+    def postprocess_T35_data(self, t35_file, start_point=(0,0),end_point=(0,0),intp_points=None):
+        """Post-process T35 data to extract relevant fields."""
+        # Should provide the path to the T35 file and interpolate line
+        if not t35_file.exists():
+            raise FileNotFoundError(f"T35 file {t35_file} does not exist.")
+        if intp_points is None:
+            raise ValueError("Interpolation points must be provided.")
+        with tempfile.TemporaryDirectory() as tempdir:
+            original_cwd = os.getcwd()
+            os.chdir(Path(tempdir))
+            tempin=shutil.copy(t35_file, tempdir)
+
+            ####CREATE A CONTROL FILE FOR SF7
+            ctrl_file= Path("CTRL.IN7")
+            with open(ctrl_file, 'w') as fp:
+                fp.write('Line	Plot\n')
+                fp.write(f'{start_point[0]}\t{start_point[1]}\t{end_point[0]}\t{end_point[1]}\n')
+                fp.write(f'{intp_points}\n')
+                fp.write('End\n')
+            resultfile=sfc.start_SF7(inputfile=tempin,controlfile=ctrl_file)
+            df, title, unit=self.process_tbl_data(resultfile)   
+            os.chdir(original_cwd)
+        return df, title, unit
+            
 if __name__ == "__main__":
-    sfdp=SFDataProcessor(r"C:\LANL")
-    sfc=SFControl(r"C:\LANL")
+    ssfdpc=SFDataProcessor()
     Path("temp").mkdir(exist_ok=True)
     testfieldpath=Path("./test/fieldresult/1CELL.T35").absolute()
     testfieldpath2=Path("./test/cavinputtest/CAVITY_INPUT.T35").absolute()
     controlfilepath=Path("./test/fieldresult/cmd.in7").absolute()
-    with tempfile.TemporaryDirectory(dir="./temp") as tempdir:
-        original_cwd = os.getcwd()
-        os.chdir(Path(tempdir))
-        
-        print(f"Current working directory: {os.getcwd()}")
-        tempin=shutil.copy(testfieldpath, os.getcwd())
-        tempctrl=shutil.copy(controlfilepath, os.getcwd())
-        print(f"Copied test field file to: {tempin}")
-        resultfile=sfc.start_SF7(controlfile=tempctrl,inputfile=tempin)
-        df,title,unit=sfdp.process_tbl_data(resultfile)
-        print(f"Result of starting SF7: {df}")
-        
-        # result=sfc.start_SF7(controlfile=controlfilepath,inputfile=testfieldpath2)
-        os.chdir(original_cwd)
+    df, title, unit=ssfdpc.postprocess_T35_data(testfieldpath,start_point=(1.666180128,0.0),end_point=(1.666180128,1.2394588),intp_points=1001)
+    print(df)
