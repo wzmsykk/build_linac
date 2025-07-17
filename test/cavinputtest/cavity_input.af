@@ -1,0 +1,39 @@
+Resonant frequency search for 2Pi/3 mode at 2998.8 MHz
+
+&reg kprob=1,     ; Superfish problem
+freq=2998.8,      ; Frequency in MHz
+nbsup=1,          ; Upper boundary
+nbslo=0,          ; Lower boundary
+nbsrt=1,          ; Right boundary
+nbslf=1,          ; Left boundary
+dx=0.01,          ; Mesh spacing
+dy=0.01,          ; Mesh spacing
+xdri=3.332360,    ; Drive point X coordinate 
+ydri=3.9,         ; Drive point Y coordinate 
+kmethod=1,        ; Use beta to compute wave number 
+dslope=-1,        ; Allows FISH to converge in 1 iteration 
+zctr=2.4992701914099005,    ; Reference Z in transit-time integrals 
+beta=1.00&        ; Particle velocity for transit-time integrals 
+
+
+
+;Number of cavities is 1.5
+
+&po x=0, y=0 &;
+&po x=0, y=4.074236667298 &;
+&po x=0.6161801276066001, y=4.074236667298 &;
+&po nt=2, x0=0.6161801276066001, y0=3.324236667298, x=0.75, y=0 &;
+&po x=1.3661801276066001, y=1.7794588 &;
+&po nt=2, x0=1.6361801276066001, y0=1.7794588, a=0.27, aovrb=0.5, x=0, y=-0.54 &;
+&po x=1.6961801276066002, y=1.2394588 &;
+&po nt=2, x0=1.6961801276066002, y0=1.7794588, a=0.27, aovrb=0.5, x=0.27, y=0 &;
+&po x=1.9661801276066002, y=3.324236667298 &;
+&po nt=2, x0=2.7161801276066004, y0=3.324236667298, x=0, y=0.75 &;
+&po x=3.948540382819801, y=4.074236667298 &;
+&po nt=2, x0=3.948540382819801, y0=3.324236667298, x=0.75, y=0 &;
+&po x=4.698540382819801, y=1.7794588 &;
+&po nt=2, x0=4.968540382819802, y0=1.7794588, a=0.27, aovrb=0.5, x=0, y=-0.54 &;
+&po x=4.998540382819801, y=1.2394588 &;
+&po x=4.998540382819801, y=0 &;
+&po x=0, y=0 &;
+

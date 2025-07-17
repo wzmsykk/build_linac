@@ -1,0 +1,288 @@
+Input cell geometry for the traveling-wave linac 
+Nominal geometry in cm: 
+D = 3.332360255, t = 0.6 
+Outer radius adjusted for resonant frequency = 2998.8 MHz 
+
+&REG KPROB=1                    ; SUPERFISH problem
+CONV=1                           ; Linear dimensions cm
+FREQ=2998.8                       ; Mode frequency
+BETA=1                            ; Particle velocity
+RMASS=-1                       ;Rest mass energy of particle
+NBSUP=1,NBSLO=0,NBSRT=1,NBSLF=1 ; Boundary conditions
+XDRI=0,YDRI=3                 ; Drive point coordinates
+DX=0.01                          ; Mesh interval
+DSLOPE=-1 &                  ; Allow convergence in 1 iteration
+
+; Start of boundary points											
+&PO	X=	0	,	Y=	0	&												
+&PO	X=	0	,	Y=	4.074236667	&												
+&PO	X=	0.616180128	,	Y=	4.074236667	&												
+&PO      NT=2	X0=	0.616180128	,	Y0=	3.324236667	,	X=	0.75	,	Y=	0	&						
+&PO	X=	1.366180128	,	Y=	1.7794588	&												
+&PO      NT=2	A=	0.27	,	B=	0.54	,	X0=	1.636180128	,	Y0=	1.7794588	,	X=	0	,	Y=	-0.54	&
+&PO	X=	1.696180128	,	Y=	1.2394588	&												
+&PO      NT=2	A=	0.27	,	B=	0.54	,	X0=	1.696180128	,	Y0=	1.7794588	,	X=	0.27	,	Y=	0	&
+&PO	X=	1.966180128	,	Y=	3.324236667	&												
+&PO      NT=2	X0=	2.716180128	,	Y0=	3.324236667	,	X=	0	,	Y=	0.75	&						
+&PO	X=	3.948540383	,	Y=	4.074236667	&												
+&PO      NT=2	X0=	3.948540383	,	Y0=	3.324236667	,	X=	0.75	,	Y=	0	&						
+&PO	X=	4.698540383	,	Y=	1.7794588	&												
+&PO      NT=2	A=	0.27	,	B=	0.54	,	X0=	4.968540383	,	Y0=	1.7794588	,	X=	0	,	Y=	-0.54	&
+&PO	X=	4.998540383	,	Y=	1.2394588	&												
+&PO	X=	4.998540383	,	Y=	0	&												
+&PO	X=	0	,	Y=	0	&												
+											
+												
+												
+												
+											
+												
+											
+												
+												
+											
+												
+												
+												
+											
+											
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+						
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+												
+					
+												
+												
+												
+												
+												
+												
+												
+												
+												
+						
+												
+												
+												
+												
+												
+												
+												
+											
+						
+												
+												
+
+												
+						
+												
+
+
+											
+
+					
+					
+
+
+
+
+
+
+
+
+
