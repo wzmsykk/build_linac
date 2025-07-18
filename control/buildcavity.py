@@ -1,7 +1,7 @@
 import tempfile
 import os
 from pathlib import Path
-SPEED_OF_LIGHT = 299792458
+
 class Cavity_2Pi_3:
     def __init__(self,t,ia,ib,ts,br,a,b,D):
         self.t = t
@@ -12,9 +12,7 @@ class Cavity_2Pi_3:
         self.a = a
         self.b = b
         self.D = D
-        self.target_frequency = 2998.8  # MHz, target frequency for the cavity
-    def wave_length(self):
-        return SPEED_OF_LIGHT / (self.target_frequency * 1e6)  # Convert MHz to Hz
+        
     def buildcavity(self,f1):
         """
         Generates a Superfish input file for a cavity with specified parameters.
