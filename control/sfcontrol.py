@@ -1,7 +1,6 @@
 
 from pathlib import Path
 import os,shutil
-from tkinter import NO
 import numpy as np
 import pandas as pd
 import tempfile
