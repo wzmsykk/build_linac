@@ -84,8 +84,8 @@ class SFDataProcessor:
 if __name__ == "__main__":
     ssfdpc=SFDataProcessor()
     Path("temp").mkdir(exist_ok=True)
-    testfieldpath=Path("./test/fieldresult/1CELL.T35").absolute()
-    testfieldpath2=Path("./test/cavinputtest/CAVITY_INPUT.T35").absolute()
-    controlfilepath=Path("./test/fieldresult/cmd.in7").absolute()
+    testfieldpath=Path("./test/field_result/1CELL.T35").absolute()
+    testfieldpath2=Path("./test/cavity_input_data/CAVITY_INPUT.T35").absolute()
+    controlfilepath=Path("./test/field_result/cmd.in7").absolute()
     df, title, unit=ssfdpc.postprocess_T35_data(testfieldpath,start_point=(1.666180128,0.0),end_point=(1.666180128,1.2394588),intp_points=1001)
     print(df)
