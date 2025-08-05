@@ -1,9 +1,11 @@
 import tempfile
 import os
 from pathlib import Path
-
+from control.sfcontrol import SFControl, SFDataProcessor
 class Cavity_2Pi_3:
-    def __init__(self,t,ia,ib,ts,br,a,b,D):
+    def __init__(self,t,ia,ib,ts,br,a,b,D,save_dir="result"):
+        self.save_dir = Path(save_dir)
+        self.save_dir.mkdir(parents=True, exist_ok=True)
         self.t = t
         self.ia = ia
         self.ib = ib
@@ -12,7 +14,8 @@ class Cavity_2Pi_3:
         self.a = a
         self.b = b
         self.D = D
-        
+        self.param_columns = ['t', 'ia', 'ib', 'ts', 'br', 'a', 'b', 'D']
+        self.interpolation_points = 1001  # Default interpolation points
     def buildcavity(self,f1):
         """
         Generates a Superfish input file for a cavity with specified parameters.
@@ -36,7 +39,7 @@ class Cavity_2Pi_3:
             fid.write('ydri=3.9,         ; Drive point Y coordinate \n')
             fid.write('kmethod=1,        ; Use beta to compute wave number \n')
             fid.write('dslope=-1,        ; Allows FISH to converge in 1 iteration \n')
-            fid.write(f'zctr={D*1.5/2},    ; Reference Z in transit-time integrals \n')
+            fid.write(f'zctr={self.D*1.5/2},    ; Reference Z in transit-time integrals \n')
             fid.write('beta=1.00&        ; Particle velocity for transit-time integrals \n\n\n\n')
 
             fid.write(';Number of cavities is 1.5\n\n')
@@ -61,20 +64,34 @@ class Cavity_2Pi_3:
             fid.write('&po x=0, y=0 &;\n')
             fid.write('\n')
         print(f"Superfish input file '{f1}' created successfully.")
+    def run_cavity_solver(self):
+        """
+        Runs the Superfish solver for the cavity.
+        
+        Returns:
+        str: Path to the output file containing the results.
+        """
+        # Assuming the Superfish solver is called 'sfsolver' and takes the input file as an argument
+        input_file = self.save_dir / "CAVITY_INPUT.AF"
+        self.buildcavity(input_file)
+        sfc= SFControl()
+        sfdp=SFDataProcessor()
+        sfo,t35=sfc.start_AUTOFISH(input_file)
+        sforesult,unit1=sfdp.process_SFO_data(sfo)
+        t35result,unit2=sfdp.postprocess_T35_data(t35, start_point=(self.D/2,0), end_point=(self.D/2,self.a), intp_points=self.interpolation_points)
+        return sforesult, t35result
 if __name__ == "__main__":
     t=6/10;ia=2.7/10;ib=5.4/10;ts=0.6/10;br=7.5/10
     a=12.394588/10
     b=40.74236667298/10
     D=33.323602552132/10
-    cav=Cavity_2Pi_3(t, ia, ib, ts, br, a, b, D)
+    
     Path("temp").mkdir(exist_ok=True)
-    with tempfile.TemporaryDirectory("temp") as tempdir:
-        outpath=Path(tempdir) / "cavity_input.af"
-        cav.buildcavity(outpath)
-        print(f"Cavity input file created at: {outpath}")
-        with open(outpath, 'r') as f:
-            content = f.read()
-            print(content)
+    with tempfile.TemporaryDirectory(dir="temp") as tempdir:
+        cav=Cavity_2Pi_3(t, ia, ib, ts, br, a, b, D,save_dir=tempdir)
+        df1, df2 = cav.run_cavity_solver()
+        print(df1)
+        print(df2)
 # fid=fopen(f1,'w');
 # fprintf(fid,'Resonant frequency search for 2Pi/3 mode at 2998.8 MHz\n');
 # fprintf(fid,'\n');

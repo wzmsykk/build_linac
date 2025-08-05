@@ -13,8 +13,8 @@ class SFControl:
         app_name = "SF7.EXE"
         
         try:
-            filepath=Path(inputfile)
-            control=Path(controlfile)
+            filepath=Path(inputfile).absolute()
+            control=Path(controlfile).absolute()
             print(f"Start SF7 Field Interpolation with input file: {inputfile} and control file: {controlfile}")
             cmd_line=str(self.superfish_dir / app_name)+" "+str(control)+" "+str(filepath)
             
@@ -42,23 +42,26 @@ class SFControl:
     def start_AUTOFISH(self, inputfile=""):
         app_name = "AUTOFISH.EXE"
         try:
-            filepath=Path(inputfile)
+            filepath=Path(inputfile).absolute()
             print(f"Start AUTOFISH Solver with input file: {inputfile}")
             cmd_line=str(self.superfish_dir / app_name)+" "+str(filepath)
             print(f"AUTOFISH command: {cmd_line}")
             os.system(cmd_line)
-            AFRESULT= filepath.with_suffix('.SFO')
-            AFRESULT2= filepath.with_suffix('.T35')
+            SFORESULT= filepath.with_suffix('.SFO')
+            T35RESULT= filepath.with_suffix('.T35')
         except Exception as e:
             print(f"Error starting AUTOFISH: {e}")
             return None
-        if AFRESULT.exists():
-                print(f"Created Output file: {AFRESULT.absolute()}.")
-                print(f"Created Output file: {AFRESULT2.absolute()}.")
-                print("AUTOFISH Solver Done.\n")
-                return AFRESULT   
+        if SFORESULT.exists():
+                print(f"Created SFO Output file: {SFORESULT.absolute()}.")
         else:
-            raise FileNotFoundError(f"Output file {AFRESULT} does not exist.")
+            raise FileNotFoundError(f"Failed to create output file {SFORESULT} .")
+        if T35RESULT.exists():
+                print(f"Created T35 Output file: {T35RESULT.absolute()}.")
+        else:
+            raise FileNotFoundError(f"Failed to create output file {T35RESULT}.")
+        print("AUTOFISH Solver Done.\n")
+        return SFORESULT,   T35RESULT
 sfc=SFControl()
 class SFDataProcessor:
     def __init__(self):
@@ -79,33 +82,37 @@ class SFDataProcessor:
                     print(f"End index: {end_index}")
                     break
             data_lines = lines[start_index:end_index]
-            data_lines = [line.strip().split() for line in data_lines if line.strip()]
+            data_lines = [map(float,line.strip().split()) for line in data_lines if line.strip()]
             title = lines[start_index-2][1:].strip().split()
             unit= lines[start_index-1][1:].strip().split()
-            df=pd.DataFrame(data_lines, columns=title)
+            df=pd.DataFrame(data_lines, columns=title).astype(float)
         return df, unit
     def process_SFO_data(self, sfo_file):
         with open(sfo_file, 'r') as file:
             lines = file.readlines()
             start_search= False
             for i, line in enumerate(lines):
+                if "Lnorm(cm)" in line:
+                    lnorm=float(lines[i+1].strip().split()[4]) ### cm
                 if not start_search and "Superfish output summary for problem description:" in line:
                     start_search=True
                 if start_search:
                     if "Frequency" in line:
                         frequency = float(line.strip().split()[2])  ### MHz
                     if "Shunt impedance" in line:
-                        shunt_impedance = float(line.strip().split()[6])  ### MOhm
-                        q = float(line.strip().split()[2])  ### MOhm
+                        shunt_impedance = float(line.strip().split()[6])  ### MOhm/m
+                        q = float(line.strip().split()[2])  
                     if "r/Q" in line:
                         r_over_q = float(line.strip().split()[2]) ### Ohm
                     if "Z*T*T" in line:
-                        ztt = float(line.strip().split()[6]) ## MOhm
+                        ztt = float(line.strip().split()[6]) ## MOhm/m
                     if "Power dissipation" in line:
                         loss = float(line.strip().split()[3])  ### W
-        result = [frequency, shunt_impedance, q, r_over_q, ztt, loss]
-        title = ["Frequency", "Shunt Impedance", "Q", "R/Q", "Z*T*T", "Power Dissipation"]
-        unit = ["MHz", "MOhm", "MOhm", "Ohm", "MOhm", "W"]
+                    if "Stored energy" in line:
+                        stored_energy = float(line.strip().split()[3]) # J
+        result = [frequency, shunt_impedance, q, r_over_q, ztt, loss, stored_energy, lnorm]
+        title = ["Frequency", "Shunt impedance", "Q", "R/Q", "Z*T*T", "Power dissipation","Stored energy", "Lnorm"]
+        unit = ["MHz", "MOhm/m", "MOhm", "Ohm", "MOhm/m", "W","J","cm"]
         df= pd.DataFrame([result], columns=title)
         return df,unit
         pass
@@ -139,8 +146,8 @@ if __name__ == "__main__":
     Path("temp").mkdir(exist_ok=True)
     testfieldpath=Path("./test/field_result_data/1CELL.T35").absolute()
     testfieldpath2=Path("./test/cavity_input_data/CAVITY_INPUT.T35").absolute()
-    afinput= Path("./test/cavity_input_data/CAVITY_INPUT.af").absolute()
-    controlfilepath=Path("./test/field_result_data/cmd.in7").absolute()
+    afinput= Path("./test/cavity_input_data/CAVITY_INPUT.AF").absolute()
+    controlfilepath=Path("./test/field_result_data/CMD.IN7").absolute()
     sfopath=Path("./test/cavity_input_data/CAVITY_INPUT.SFO").absolute()
     df, unit=ssfdpc.postprocess_T35_data(testfieldpath,start_point=(1.666180128,0.0),end_point=(1.666180128,1.2394588),intp_points=1001)
     print(df)
@@ -150,9 +157,10 @@ if __name__ == "__main__":
         original_cwd = os.getcwd()
         os.chdir(Path(tempdir))
         tempin=shutil.copy(afinput, tempdir)
-        result=sfc.start_AUTOFISH(inputfile=tempin)
-        assert result.exists()
-        print(f"AF Result file: {result}")
-        df, unit=ssfdpc.process_SFO_data(result)
+        result1,result2=sfc.start_AUTOFISH(inputfile=tempin)
+        assert result1.exists() and result2.exists()
+        print(f"AF Result file: {result1}")
+        df, unit=ssfdpc.process_SFO_data(result1)
         print(df)
+        
         os.chdir(original_cwd)
