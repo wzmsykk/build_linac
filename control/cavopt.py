@@ -35,15 +35,19 @@ class Cavity_Optimizer:
         pfd=calc_pfd_2pi_3_mode(t35)
         paramrecord=pd.DataFrame([[self.t, self.ia, self.ib, self.ts, self.br, self.a, b, self.D]],index=[index],columns=cav.param_columns)
         pfdrecord=pd.DataFrame([pfd], index=[index], columns=["Power factor density"])
-        record=pd.concat([paramrecord, sfo, pfdrecord], axis=1)
+        sfo_indexed=sfo.set_index(pd.Index([index]))
+        record=pd.concat([paramrecord, sfo_indexed, pfdrecord], axis=1)
         self.runrecords.append(record)
         record.to_csv(save_dir / f"cavity_{index}.csv", index=False)
         return record
     def objective_function(self, bs):
+        print(f"Optimizing with parameters: {bs}")
         result= self.cavity_2pi_3(bs[0])
-        calculated_frequency=result.head(1)['Frequency']
+        calculated_frequency=result.head(1)['Frequency'].values[0]
         print(f"Calculated frequency: {calculated_frequency} MHz")
-        return (calculated_frequency - self.target_frequency) ** 2
+        obj=(calculated_frequency - self.target_frequency) ** 2
+        print(f"Objective function value: {obj}")
+        return obj
     def save_records(self):
         if len(self.records)==0:
             print("No records")
@@ -65,13 +69,19 @@ class Cavity_Optimizer:
             self.save_dir.mkdir(parents=True, exist_ok=True)
         if any(self.save_dir.iterdir()):
             print(f"Warning: Directory {self.save_dir} is not empty. Previous records may be overwritten.")
-        result = minimize(self.objective_function, initial_guess, method='BFGS',tol=1e-3,bounds=[(item*0.9, item*1.1) for item in initial_guess])
+        result = minimize(self.objective_function, initial_guess, method='Nelder-Mead',tol=1e-3,bounds=[(item*0.95, item*1.05) for item in initial_guess])
         runrecords= pd.concat(self.runrecords)
         runrecords.to_csv(self.save_dir / f"{self.opt_name}_run_records.csv", index=False)
         return result
     
 if __name__ == "__main__":
     opt= Cavity_Optimizer(opt_name="OPT01")
+    # minb=opt.b*0.95
+    # maxb=opt.b*1.05
+    # print(f"Min: {minb}, Max: {maxb}")
+    # opt.cavity_2pi_3(minb)  
+    # opt.cavity_2pi_3(maxb)
+    
     result=opt.optimize_cavity(initial_guess=[opt.b])
     print("Optimization Result:")
     print(result)
