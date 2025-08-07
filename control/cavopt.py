@@ -18,7 +18,6 @@ class Cavity_Optimizer:
         self.save_dir = Path("result") / self.opt_name
         
         self.runrecords= []
-        self.optrecords=[]
         self._opt_index=0
     def _new_opt_record_index(self):
         index= self._opt_index
@@ -70,18 +69,36 @@ class Cavity_Optimizer:
         if any(self.save_dir.iterdir()):
             print(f"Warning: Directory {self.save_dir} is not empty. Previous records may be overwritten.")
         result = minimize(self.objective_function, initial_guess, method='Nelder-Mead',tol=1e-3,bounds=[(item*0.95, item*1.05) for item in initial_guess])
-        runrecords= pd.concat(self.runrecords)
-        runrecords.to_csv(self.save_dir / f"{self.opt_name}_run_records.csv", index=False)
+        outrecords= pd.concat(self.runrecords)
+        outrecords.to_csv(self.save_dir / f"{self.opt_name}_run_records.csv", index=False)
         return result
     
 if __name__ == "__main__":
-    opt= Cavity_Optimizer(opt_name="OPT01")
-    # minb=opt.b*0.95
-    # maxb=opt.b*1.05
-    # print(f"Min: {minb}, Max: {maxb}")
-    # opt.cavity_2pi_3(minb)  
-    # opt.cavity_2pi_3(maxb)
+    input=pd.read_csv("./test/freq_opt_data/in.csv")
+    len=len(input)
+    print(f"Input data length: {len}")
+    r=[]
+    for i in range(20):
+        row=input.iloc[i]
+        opt= Cavity_Optimizer(opt_name='OPT_'+str(i).zfill(2))
+        opt.a= row['a(cm)']
+        minb=row['b(cm)']*0.95
+        maxb=row['b(cm)']*1.05
+        print(f"Min: {minb}, Max: {maxb}")        
+        result=opt.optimize_cavity(initial_guess=[row['b(cm)']])
+        print("Optimization Result:")
+        print(result)
+        r.append(opt.runrecords[-1])
+        print(r)
+        optrecords= pd.concat(r)
+        optrecords.to_csv("opt_records"+str(i).zfill(2)+".csv", index=False)
+    # opt= Cavity_Optimizer(opt_name="OPT01")
+    # # minb=opt.b*0.95
+    # # maxb=opt.b*1.05
+    # # print(f"Min: {minb}, Max: {maxb}")
+    # # opt.cavity_2pi_3(minb)  
+    # # opt.cavity_2pi_3(maxb)
     
-    result=opt.optimize_cavity(initial_guess=[opt.b])
-    print("Optimization Result:")
-    print(result)
+    # result=opt.optimize_cavity(initial_guess=[opt.b])
+    # print("Optimization Result:")
+    # print(result)
